@@ -1,6 +1,6 @@
 package org.dersbian.vandiorsp.repository;
 
-import org.dersbian.vandiorsq.models.CodeSourceLocation;
+import org.dersbian.vandiorsp.model.CodeSourceLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

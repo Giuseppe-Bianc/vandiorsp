@@ -1,8 +1,8 @@
 package org.dersbian.vandiorsp.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dersbian.vandiorsq.models.CodeSourceLocation;
-import org.dersbian.vandiorsq.repositories.CodeSourceLocationRepository;
+import org.dersbian.vandiorsp.model.CodeSourceLocation;
+import org.dersbian.vandiorsp.repository.CodeSourceLocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

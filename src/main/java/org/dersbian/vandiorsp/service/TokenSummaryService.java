@@ -1,53 +1,58 @@
 package org.dersbian.vandiorsp.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dersbian.vandiorsq.models.FileName;
-import org.dersbian.vandiorsq.models.TokenSummary;
-import org.dersbian.vandiorsq.models.dto.TokenSummaryDto;
-import org.dersbian.vandiorsq.repositories.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.dersbian.vandiorsp.model.*;
+import org.dersbian.vandiorsp.model.dto.TokenSummaryDTO;
+import org.dersbian.vandiorsp.repository.CodeSourceLocationRepository;
+import org.dersbian.vandiorsp.repository.FileNameRepository;
+import org.dersbian.vandiorsp.repository.TokenRepository;
+import org.dersbian.vandiorsp.repository.TokenSummaryRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class TokenSummaryService {
 
     private final FileNameRepository fileNameRepository;
+    private final TokenRepository tokenRepository;
+    private final CodeSourceLocationRepository codeSourceLocationRepository;
     private final TokenSummaryRepository tokenSummaryRepository;
-
-    @Autowired
-    public TokenSummaryService(FileNameRepository fileNameRepository, TokenSummaryRepository tokenSummaryRepository) {
-        this.fileNameRepository = fileNameRepository;
-        this.tokenSummaryRepository = tokenSummaryRepository;
-    }
 
     /**
      * Inserts TokenSummary records for all TokenType values by counting tokens in each FileName.
      */
-    public void saveTokenSummaries() {
-        List<TokenSummaryDto> tokenSummaryDtos = tokenSummaryRepository.findTokenSummaries();
-        Map<Long, FileName> fileNameCache = new HashMap<>(tokenSummaryDtos.size());
+    public List<TokenSummaryDTO> saveTokenSummaries() {
+        List<Token> tokens = tokenRepository.findAll();
+        // Group tokens by type and file name, then count occurrences
+        Map<TokenSummaryKey, Long> summaryMap = tokens.stream()
+                .collect(Collectors.groupingBy(
+                        token -> new TokenSummaryKey(token.getType(), token.getSourceLocation().getFileName()),
+                        Collectors.counting()
+                ));
 
-        List<TokenSummary> tokenSummaries = tokenSummaryDtos.stream()
-                .map(tokenSummaryDto -> {
-                    FileName fileName = fileNameCache.computeIfAbsent(
-                            tokenSummaryDto.getFileName().getId(),
-                            this::findFileNameOrThrow);
-                    return TokenSummary.builder()
-                            .type(tokenSummaryDto.getType())
-                            .tokenCount(tokenSummaryDto.getTokenCount())
-                            .fileName(fileName)
-                            .build();
-                })
+        // Convert the map to TokenSummary entities
+        List<TokenSummary> summaries = summaryMap.entrySet().stream()
+                .map(entry -> TokenSummary.builder()
+                        .type(entry.getKey().getType())
+                        .fileName(entry.getKey().getFileName())
+                        .tokenCount(entry.getValue())
+                        .build())
                 .collect(Collectors.toList());
 
-        tokenSummaryRepository.saveAll(tokenSummaries);
+        // Save all summaries
+        tokenSummaryRepository.saveAll(summaries);
+        return summaries.stream()
+                .map(TokenSummaryDTO::fromEntity)
+                .collect(Collectors.toList());
     }
+
+
 
     private FileName findFileNameOrThrow(Long filenameID) {
         return fileNameRepository.findById(filenameID)

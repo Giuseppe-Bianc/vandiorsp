@@ -1,10 +1,13 @@
 package org.dersbian.vandiorsp.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dersbian.vandiorsq.models.*;
-import org.dersbian.vandiorsq.repositories.CodeSourceLocationRepository;
-import org.dersbian.vandiorsq.repositories.FileNameRepository;
-import org.dersbian.vandiorsq.repositories.TokenRepository;
+import org.dersbian.vandiorsp.model.CodeSourceLocation;
+import org.dersbian.vandiorsp.model.FileName;
+import org.dersbian.vandiorsp.model.Lexer;
+import org.dersbian.vandiorsp.model.Token;
+import org.dersbian.vandiorsp.repository.CodeSourceLocationRepository;
+import org.dersbian.vandiorsp.repository.FileNameRepository;
+import org.dersbian.vandiorsp.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,14 +118,15 @@ public class TokenService {
 
     /**
      * Helper method to create and save a new CodeSourceLocation.
-    private CodeSourceLocation saveCodeSourceLocation(FileName fileName, int line, int column) {
-        var sourceLocation = CodeSourceLocation.builder()
-                .fileName(fileName)
-                .line(line)
-                .column(column)
-                .build();
-        return codeSourceLocationRepository.save(sourceLocation);
-    }*/
+     * private CodeSourceLocation saveCodeSourceLocation(FileName fileName, int line, int column) {
+     * var sourceLocation = CodeSourceLocation.builder()
+     * .fileName(fileName)
+     * .line(line)
+     * .column(column)
+     * .build();
+     * return codeSourceLocationRepository.save(sourceLocation);
+     * }
+     */
 
     public Token findToken(Long id) {
         return tokenRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("the token whit id: " + id + "not found"));

@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.dersbian.vandiorsq.models.Token;
-import org.dersbian.vandiorsq.service.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.dersbian.vandiorsp.model.Token;
+import org.dersbian.vandiorsp.service.TokenService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,15 +14,11 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping(path = "api/v1/tokens", produces = {"application/json"})
 public class RisorsaToken {
 
     private final TokenService tokenService;
-
-    @Autowired
-    public RisorsaToken(TokenService tokenService) {
-        this.tokenService = tokenService;
-    }
 
     /**
      * Saves a new token.

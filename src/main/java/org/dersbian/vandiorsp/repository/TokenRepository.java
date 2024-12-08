@@ -1,7 +1,7 @@
 package org.dersbian.vandiorsp.repository;
 
-import org.dersbian.vandiorsq.models.Token;
-import org.dersbian.vandiorsq.models.TokenType;
+import org.dersbian.vandiorsp.model.Token;
+import org.dersbian.vandiorsp.model.TokenType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
