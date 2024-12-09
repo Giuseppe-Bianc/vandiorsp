@@ -1,5 +1,6 @@
 package org.dersbian.vandiorsp.rest;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.dersbian.vandiorsp.model.dto.TokenSummaryDTO;
 import org.dersbian.vandiorsp.service.TokenSummaryService;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping(path = "api/v1/token-summary", produces = {"application/json"})
 public class RisorsaTokenSummary {
     private final TokenSummaryService tokenSummaryService;

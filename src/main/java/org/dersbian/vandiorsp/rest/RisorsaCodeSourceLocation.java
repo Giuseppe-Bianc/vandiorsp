@@ -1,5 +1,6 @@
 package org.dersbian.vandiorsp.rest;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.dersbian.vandiorsp.model.CodeSourceLocation;
 import org.dersbian.vandiorsp.service.CodeSourceLocationService;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping(path = "api/v1/code_source_locations", produces = {"application/json"})
+@SecurityRequirement(name = "bearerAuth")
 public class RisorsaCodeSourceLocation {
     private final CodeSourceLocationService codeSourceLocationService;
 

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.dersbian.vandiorsp.model.Token;
 import org.dersbian.vandiorsp.service.TokenService;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping(path = "api/v1/tokens", produces = {"application/json"})
 public class RisorsaToken {
 
