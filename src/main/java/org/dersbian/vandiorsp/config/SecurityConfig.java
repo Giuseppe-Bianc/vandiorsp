@@ -30,28 +30,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
-    /*@Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-
-        // Define allowed origins (you can list specific origins)
-        config.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGIN_LOCAL, ALLOWED_ORIGIN_NULL));
-
-        // Define allowed methods (GET, POST, PUT, DELETE, etc.)
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-
-        // Define allowed headers
-        config.setAllowedHeaders(Arrays.asList("origin", "content-type", "accept", "authorization"));
-
-        // Enable credentials if needed (cookies, authorization headers, etc.)
-        config.setAllowCredentials(true);
-
-        // Register the CORS configuration for all paths
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-*/
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
@@ -73,29 +51,6 @@ public class SecurityConfig {
                         authorizeRequests -> authorizeRequests.requestMatchers(AUTH_WHITELIST).permitAll().anyRequest().authenticated()
                 ).csrf(CsrfConfigurer::disable)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                /*.exceptionHandling(exceptionHandling -> exceptionHandling.
-                        authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType("application/json");
-                            response.getWriter().write("Authentication Failed: " + authException.getMessage());
-                        })
-                        authenticationEntryPoint((request, response, authException) -> {
-                            // Create a CustomErrorResponse
-                            CustomErrorResponse errorResponse = new CustomErrorResponse(
-                                    "Authentication Failed: " + authException.getMessage(),
-                                    request.getRequestURI()
-                            );
-
-                            // Return a ResponseEntity with the error details
-                            ResponseEntity<CustomErrorResponse> responseEntity = new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-
-                            // Write the response to the HttpServletResponse
-                            response.setStatus(responseEntity.getStatusCodeValue());
-                            response.setContentType("application/json");
-                            response.getWriter().write(errorResponse.toString());
-                        })
-                        //.authenticationEntryPoint(customAuthenticationEntryPoint)
-                )*/
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
