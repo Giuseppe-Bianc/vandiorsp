@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 public class AuthenticationResponse {
     private String token;
     private String errorMessage;
+    private String firstname;
+    private String lastname;
+    private String email;
 
     public static AuthenticationResponse error(String errorMessage) {
         return AuthenticationResponse.builder()
@@ -20,9 +23,12 @@ public class AuthenticationResponse {
                 .build();
     }
 
-    public static AuthenticationResponse success(String token) {
+    public static AuthenticationResponse success(String token, String firstname, String lastname, String email) {
         return AuthenticationResponse.builder()
                 .token(token)
+                .firstname(firstname)
+                .lastname(lastname)
+                .email(email)
                 .build();
     }
 }

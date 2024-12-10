@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +22,7 @@ import static org.dersbian.vandiorsp.Costansts.AUTH_WHITELIST;
 
 @Component
 @RequiredArgsConstructor
-
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -34,9 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * <p>Provides HttpServletRequest and HttpServletResponse arguments instead of the
      * default ServletRequest and ServletResponse ones.
      *
-     * @param request
-     * @param response
-     * @param filterChain
+     * @param request the HttpServletRequest object that contains the request the client made to the servlet
+     * @param response the HttpServletResponse object that contains the response the servlet returns to the client
+     * @param filterChain the FilterChain object used to invoke the next filter in the chain
      */
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -44,7 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         // Skip authentication for whitelisted paths
+        String uriPath = request.getRequestURI();
         if (Arrays.asList(AUTH_WHITELIST).contains(request.getRequestURI())) {
+            log.info("Skipping authentication for whitelisted path: {}", uriPath);
             filterChain.doFilter(request, response);
             return;
         }

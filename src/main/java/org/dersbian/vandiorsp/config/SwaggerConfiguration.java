@@ -76,7 +76,7 @@ public class SwaggerConfiguration {
         info.setLicense(license);
         info.setContact(contact);
         info.setTermsOfService(appTermsOfServiceUrl);
-
+        info.setSummary(appDescription);
         return info;
     }
 }
