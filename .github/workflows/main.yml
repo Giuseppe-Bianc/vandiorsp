@@ -50,3 +50,11 @@ jobs:
 
           echo "Granting privileges to user..."
           psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="GRANT ALL PRIVILEGES ON DATABASE $PGDATABASE TO $PGUSERNAME;"
+      - name: Show created databases and DBMS info
+        shell: bash
+        run: |
+          echo "Listing all databases:"
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="\l"
+
+          echo "PostgreSQL version:"
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="SELECT version();"
