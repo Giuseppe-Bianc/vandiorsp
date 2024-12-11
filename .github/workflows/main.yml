@@ -23,7 +23,7 @@ jobs:
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "$(pg_config --bindir)" >> $GITHUB_PATH
           fi
-      - name: Start preinstalled PostgreSQL
+      - name: Start preinstalled PostgreSQL 16.2
         shell: bash
         run: |
           echo "Initializing database cluster..."
@@ -43,7 +43,10 @@ jobs:
           pg_ctl start
 
           echo "Creating user..."
-          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'" --command="\du"
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD';"
 
           echo "Creating database..."
           createdb --owner="$PGUSERNAME" --username="postgres" "$PGDATABASE"
+
+          echo "Granting privileges to user..."
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="GRANT ALL PRIVILEGES ON DATABASE $PGDATABASE TO $PGUSERNAME;"
