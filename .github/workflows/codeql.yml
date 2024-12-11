@@ -1,0 +1,99 @@
+name: "CodeQL Advanced with PostgreSQL Setup"
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    - cron: '16 5 * * 5'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: java-kotlin
+          build-mode: none
+
+    timeout-minutes: 15
+    env:
+      PGHOST: localhost
+      PGDATABASE: vandiorjrsql
+      PGUSERNAME: pguser
+      PGPASSWORD: pguser
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # PostgreSQL setup steps
+      - name: Add PostgreSQL binaries to PATH
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "$PGBIN" >> $GITHUB_PATH
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            echo "$(pg_config --bindir)" >> $GITHUB_PATH
+          fi
+
+      - name: Start preinstalled PostgreSQL 16.2
+        shell: bash
+        run: |
+          echo "Initializing database cluster..."
+          export PGHOST="${RUNNER_TEMP//\\//}/postgres"
+          export PGDATA="$PGHOST/pgdata"
+          mkdir -p "$PGDATA"
+
+          export PWFILE="$RUNNER_TEMP/pwfile"
+          echo "postgres" > $PWFILE
+          initdb --pgdata="$PGDATA" --username="postgres" --pwfile="$PWFILE"
+
+          echo "Starting PostgreSQL..."
+          echo "unix_socket_directories = '$PGHOST'" >> "$PGDATA/postgresql.conf"
+          pg_ctl start
+
+          echo "Creating user..."
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD';"
+
+          echo "Creating database..."
+          createdb --owner="$PGUSERNAME" --username="postgres" "$PGDATABASE"
+
+          echo "Granting privileges to user..."
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="GRANT ALL PRIVILEGES ON DATABASE $PGDATABASE TO $PGUSERNAME;"
+
+      - name: Show created databases and DBMS info
+        shell: bash
+        run: |
+          echo "Listing all databases:"
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="\l"
+
+          echo "PostgreSQL version:"
+          psql --host "$PGHOST" --username="postgres" --dbname="postgres" --command="SELECT version();"
+
+      # CodeQL setup steps
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - if: matrix.build-mode == 'manual'
+        shell: bash
+        run: |
+          echo 'Replace this with commands to build your code.'
+          exit 1
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
