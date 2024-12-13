@@ -67,6 +67,10 @@ public class CodeSourceLocation {
         this(fileName, line, column, createdAt, null);
     }
 
+    public CodeSourceLocation(FileName fileName, int line, int column) {
+        this(fileName, line, column, LocalDateTime.now());
+    }
+
     public static CodeSourceLocation unknown() {
         return new CodeSourceLocation(new FileName("unknown"), 0, 0, LocalDateTime.now());
     }

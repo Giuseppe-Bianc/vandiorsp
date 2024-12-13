@@ -77,6 +77,10 @@ public class Token {
         this(tokenType, "", sourceLocation, createdAt, null);
     }
 
+    public Token(TokenType tokenType, String value, CodeSourceLocation sourceLocation) {
+        this(tokenType, value, sourceLocation, LocalDateTime.now());
+    }
+
     public boolean isType(TokenType type) {
         return this.type == type;
     }
