@@ -1,12 +1,16 @@
 package org.dersbian.vandiorsp.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class LexerTest {
 
     /*TEST_CASE("default constructed token","[token]") {
@@ -417,241 +421,417 @@ class LexerTest {
         vnd::Token token2(identf, "variable2", vnd::CodeSourceLocation (filename, t_line, t_colum));
         REQUIRE(token1 != token2);
     }
+    */
+    @Test
+    void emitIdentifierToken() {
+        String code = "a a_ a0 a000_ _a";
+        String filename = "testFile";
 
-    TEST_CASE("tokenizer emit identifier token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "a a_ a0 a000_ _a", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 6);
-        REQUIRE(tokens[0] == vnd::Token (identf, "a", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (identf, "a_", vnd::CodeSourceLocation (filename, 1, 3)));
-        REQUIRE(tokens[2] == vnd::Token (identf, "a0", vnd::CodeSourceLocation (filename, 1, 6)));
-        REQUIRE(tokens[3] == vnd::Token (identf, "a000_", vnd::CodeSourceLocation (filename, 1, t_colum5)));
-        REQUIRE(tokens[4] == vnd::Token (identf, "_a", vnd::CodeSourceLocation (filename, 1, t_colum10)));
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(6, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a_", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a0", new CodeSourceLocation(fileName, 1, 6)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a000_", new CodeSourceLocation(fileName, 1, 9)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "_a", new CodeSourceLocation(fileName, 1, 15)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit identifier token new line","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "a a_\na0 a000_ _a", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 6);
-        REQUIRE(tokens[0] == vnd::Token (identf, "a", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (identf, "a_", vnd::CodeSourceLocation (filename, 1, 3)));
-        REQUIRE(tokens[2] == vnd::Token (identf, "a0", vnd::CodeSourceLocation (filename, 2, 1)));
-        REQUIRE(tokens[3] == vnd::Token (identf, "a000_", vnd::CodeSourceLocation (filename, 2, 4)));
-        REQUIRE(tokens[4] == vnd::Token (identf, "_a", vnd::CodeSourceLocation (filename, 2, 10)));
+    @Test
+    void emitIdentifierTokenNewLine() {
+        String code = "a a_\na0 a000_ _a";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(6, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a_", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a0", new CodeSourceLocation(fileName, 2, 1)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "a000_", new CodeSourceLocation(fileName, 2, 4)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.IDENTIFIER, "_a", new CodeSourceLocation(fileName, 2, 10)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit integer token for hexadecimals numbers","[tokenizer]") {
-        // hexadecimals 0xhexnum a-f A-F 0-9
-        vnd::Tokenizer tokenizer {
-            "#0 #23 #24 #ff #7f", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 6);
-        REQUIRE(tokens[0] == vnd::Token (inte, "#0", vnd::CodeSourceLocation (filename, 1, 0)));
-        REQUIRE(tokens[1] == vnd::Token (inte, "#23", vnd::CodeSourceLocation (filename, 1, 3)));
-        REQUIRE(tokens[2] == vnd::Token (inte, "#24", vnd::CodeSourceLocation (filename, 1, t_colum3)));
-        REQUIRE(tokens[3] == vnd::Token (inte, "#ff", vnd::CodeSourceLocation (filename, 1, t_colum8)));
-        REQUIRE(tokens[4] == vnd::Token (inte, "#7f", vnd::CodeSourceLocation (filename, 1, t_colum10)));
+    @Test
+    void emitIntegerTokenForHexadecimalsNumbers() {
+        String code = "#0 #23 #24 #ff #7f";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(6, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.INTEGER, "#0", new CodeSourceLocation(fileName, 1, 0)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#23", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#24", new CodeSourceLocation(fileName, 1, 7)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#ff", new CodeSourceLocation(fileName, 1, 11)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#7f", new CodeSourceLocation(fileName, 1, 15)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit exception on  malformed exadecimal number or octal number","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "#", filename
-        } ;
-        REQUIRE_THROWS_MATCHES(tokenizer.tokenize(), std::runtime_error,
-                MessageMatches(ContainsSubstring("malformed exadecimal number or octal number '#' (line 1, column 2):")));
+    @Test
+    void emitExceptionOnMalformedExadecimalNumberOrOctalNumber() {
+        String code = "#";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        assertThrows(RuntimeException.class, tokenizer::tokenize, "Malformed exadecimal number or octal number '#' (line 1, column 2):");
     }
 
-    TEST_CASE("tokenizer emit integer token for octal numbers","[tokenizer]") {
-        // octal 0oOctnum 0-7
-        vnd::Tokenizer tokenizer {
-            "#o0 #o23 #o24", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 4);
-        REQUIRE(tokens[0] == vnd::Token (inte, "#o0", vnd::CodeSourceLocation (filename, 1, 0)));
-        REQUIRE(tokens[1] == vnd::Token (inte, "#o23", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (inte, "#o24", vnd::CodeSourceLocation (filename, 1, t_colum5)));
+    @Test
+    void testEmitIntegerTokenFromOctalNumbers(){
+        String code = "#o0 #o23 #o24";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(4, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.INTEGER, "#o0", new CodeSourceLocation(fileName, 1, 0)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#o23", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "#o24", new CodeSourceLocation(fileName, 1, 9)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
     }
 
-    TEST_CASE("tokenizer emit integer token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "42 333 550 34000000", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 5);
-        REQUIRE(tokens[0] == vnd::Token (inte, "42", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (inte, "333", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (inte, "550", vnd::CodeSourceLocation (filename, 1, t_colum4)));
-        REQUIRE(tokens[3] == vnd::Token (inte, "34000000", vnd::CodeSourceLocation (filename, 1, t_colum14)));
+    @Test
+    void testIntegerToken() {
+        String code = "42 333 550 34000000";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(5, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.INTEGER, "42", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "333", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "550", new CodeSourceLocation(fileName, 1, 8)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.INTEGER, "34000000", new CodeSourceLocation(fileName, 1, 12)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+    }
+    @Test
+    void testEmitDoubleToken() {
+        String code = "1. 1.0 1e+1 1E+1 1.1e+1 1.1E+1 1e-1 1E-1 1.1e-1 1.1E-1 .4e12 4i 5.4if .7f";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+        assertEquals(15, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.0", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1e+1", new CodeSourceLocation(fileName, 1, 8)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1E+1", new CodeSourceLocation(fileName, 1, 13)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.1e+1", new CodeSourceLocation(fileName, 1, 18)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.1E+1", new CodeSourceLocation(fileName, 1, 25)).toString(),
+                tokens.get(5).toString(), "Sixth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1e-1", new CodeSourceLocation(fileName, 1, 32)).toString(),
+                tokens.get(6).toString(), "Seventh token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1E-1", new CodeSourceLocation(fileName, 1, 37)).toString(),
+                tokens.get(7).toString(), "Eighth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.1e-1", new CodeSourceLocation(fileName, 1, 42)).toString(),
+                tokens.get(8).toString(), "Ninth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "1.1E-1", new CodeSourceLocation(fileName, 1, 49)).toString(),
+                tokens.get(9).toString(), "Tenth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, ".4e12", new CodeSourceLocation(fileName, 1, 56)).toString(),
+                tokens.get(10).toString(), "Eleventh token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "4i", new CodeSourceLocation(fileName, 1, 62)).toString(),
+                tokens.get(11).toString(), "Twelfth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, "5.4if", new CodeSourceLocation(fileName, 1, 65)).toString(),
+                tokens.get(12).toString(), "Thirteenth token mismatch");
+
+        assertEquals(new Token(TokenType.DOUBLE, ".7f", new CodeSourceLocation(fileName, 1, 71)).toString(),
+                tokens.get(13).toString(), "Fourteenth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit integer token new line","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "42 333\n550 34000000", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 5);
-        REQUIRE(tokens[0] == vnd::Token (inte, "42", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (inte, "333", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (inte, "550", vnd::CodeSourceLocation (filename, 2, 1)));
-        REQUIRE(tokens[3] == vnd::Token (inte, "34000000", vnd::CodeSourceLocation (filename, 2, 5)));
+    @Test
+    void testEmitOperatorToken() {
+        String code = "* / = , : < > ! | & + - ^ . %";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(16, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.STAR, "*", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.DIVIDE, "/", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.EQUAL, "=", new CodeSourceLocation(fileName, 1, 5)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.COMMA, ",", new CodeSourceLocation(fileName, 1, 7)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.COLON, ":", new CodeSourceLocation(fileName, 1, 9)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
+
+        assertEquals(new Token(TokenType.LESS, "<", new CodeSourceLocation(fileName, 1, 11)).toString(),
+                tokens.get(5).toString(), "Sixth token mismatch");
+
+        assertEquals(new Token(TokenType.GREATER, ">", new CodeSourceLocation(fileName, 1, 13)).toString(),
+                tokens.get(6).toString(), "Seventh token mismatch");
+
+        assertEquals(new Token(TokenType.NOT, "!", new CodeSourceLocation(fileName, 1, 15)).toString(),
+                tokens.get(7).toString(), "Eighth token mismatch");
+
+        assertEquals(new Token(TokenType.OR, "|", new CodeSourceLocation(fileName, 1, 17)).toString(),
+                tokens.get(8).toString(), "Ninth token mismatch");
+
+        assertEquals(new Token(TokenType.AND, "&", new CodeSourceLocation(fileName, 1, 19)).toString(),
+                tokens.get(9).toString(), "Tenth token mismatch");
+
+        assertEquals(new Token(TokenType.PLUS, "+", new CodeSourceLocation(fileName, 1, 21)).toString(),
+                tokens.get(10).toString(), "Eleventh token mismatch");
+
+        assertEquals(new Token(TokenType.MINUS, "-", new CodeSourceLocation(fileName, 1, 23)).toString(),
+                tokens.get(11).toString(), "Twelfth token mismatch");
+
+        assertEquals(new Token(TokenType.XOR, "^", new CodeSourceLocation(fileName, 1, 25)).toString(),
+                tokens.get(12).toString(), "Thirteenth token mismatch");
+
+        assertEquals(new Token(TokenType.DOT, ".", new CodeSourceLocation(fileName, 1, 27)).toString(),
+                tokens.get(13).toString(), "Fourteenth token mismatch");
+
+        assertEquals(new Token(TokenType.PERCENT, "%", new CodeSourceLocation(fileName, 1, 29)).toString(),
+                tokens.get(14).toString(), "Fifteenth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit double token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "1. 1.0 1e+1 1E+1 1.1e+1 1.1E+1 1e-1 1E-1 1.1e-1 1.1E-1 .4e12 4i 5.4if .7f", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 15);
-        REQUIRE(tokens[0] == vnd::Token (doub, "1.", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (doub, "1.0", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (doub, "1e+1", vnd::CodeSourceLocation (filename, 1, t_colum4)));
-        REQUIRE(tokens[3] == vnd::Token (doub, "1E+1", vnd::CodeSourceLocation (filename, 1, t_colum11)));
-        REQUIRE(tokens[4] == vnd::Token (doub, "1.1e+1", vnd::CodeSourceLocation (filename, 1, 18)));
-        REQUIRE(tokens[5] == vnd::Token (doub, "1.1E+1", vnd::CodeSourceLocation (filename, 1, 25)));
-        REQUIRE(tokens[6] == vnd::Token (doub, "1e-1", vnd::CodeSourceLocation (filename, 1, 32)));
-        REQUIRE(tokens[7] == vnd::Token (doub, "1E-1", vnd::CodeSourceLocation (filename, 1, 37)));
-        REQUIRE(tokens[8] == vnd::Token (doub, "1.1e-1", vnd::CodeSourceLocation (filename, 1, 42)));
-        REQUIRE(tokens[9] == vnd::Token (doub, "1.1E-1", vnd::CodeSourceLocation (filename, 1, 49)));
-        REQUIRE(tokens[10] == vnd::Token (doub, ".4e12", vnd::CodeSourceLocation (filename, 1, 56)));
-        REQUIRE(tokens[11] == vnd::Token (doub, "4i", vnd::CodeSourceLocation (filename, 1, 62)));
-        REQUIRE(tokens[12] == vnd::Token (doub, "5.4if", vnd::CodeSourceLocation (filename, 1, 65)));
-        REQUIRE(tokens[13] == vnd::Token (doub, ".7f", vnd::CodeSourceLocation (filename, 1, 71)));
+    @Test
+    void testEmitOperationEqualToken() {
+        String code = "+= -= *= /= %=";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(6, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.PLUSEQUAL, "+=", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.MINUSEQUAL, "-=", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.STAREQUAL, "*=", new CodeSourceLocation(fileName, 1, 7)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.DIVIDEEQUAL, "/=", new CodeSourceLocation(fileName, 1, 10)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
+
+        assertEquals(new Token(TokenType.PERCENTEQUAL, "%=", new CodeSourceLocation(fileName, 1, 13)).toString(),
+                tokens.get(4).toString(), "Fifth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit operator token","[tokenizer]") {
-        using enum vnd::TokenType;
-        vnd::Tokenizer tokenizer {
-            "* / = , : < > ! | & + - ^ . %", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 16);
-        REQUIRE(tokens[0] == vnd::Token (STAR, "*", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (DIVIDE, "/", vnd::CodeSourceLocation (filename, 1, 3)));
-        REQUIRE(tokens[2] == vnd::Token (EQUAL, "=", vnd::CodeSourceLocation (filename, 1, 5)));
-        REQUIRE(tokens[3] == vnd::Token (COMMA, ",", vnd::CodeSourceLocation (filename, 1, t_colum + 1)));
-        REQUIRE(tokens[4] == vnd::Token (COLON, ":", vnd::CodeSourceLocation (filename, 1, t_colum4 + 1)));
-        // REQUIRE(tokens[5].getColumn() == t_colum8);
-        REQUIRE(tokens[5] == vnd::Token (LESS, "<", vnd::CodeSourceLocation (filename, 1, t_colum8)));
-        REQUIRE(tokens[6] == vnd::Token (GREATER, ">", vnd::CodeSourceLocation (filename, 1, t_colum11)));
-        REQUIRE(tokens[7] == vnd::Token (NOT, "!", vnd::CodeSourceLocation (filename, 1, t_colum10)));
-        REQUIRE(tokens[8] == vnd::Token (OR, "|", vnd::CodeSourceLocation (filename, 1, t_colum13)));
-        REQUIRE(tokens[9] == vnd::Token (AND, "&", vnd::CodeSourceLocation (filename, 1, 19)));
-        REQUIRE(tokens[10] == vnd::Token (PLUS, "+", vnd::CodeSourceLocation (filename, 1, 21)));
-        REQUIRE(tokens[11] == vnd::Token (MINUS, "-", vnd::CodeSourceLocation (filename, 1, 23)));
-        REQUIRE(tokens[12] == vnd::Token (XOR, "^", vnd::CodeSourceLocation (filename, 1, 25)));
-        REQUIRE(tokens[13] == vnd::Token (DOT, ".", vnd::CodeSourceLocation (filename, 1, 27)));
-        REQUIRE(tokens[14] == vnd::Token (PERCENT, "%", vnd::CodeSourceLocation (filename, 1, 29)));
+    @Test
+    void testEmitBooleanOperatorToken() {
+        String code = "== >= <= !=";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(5, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.EQUALEQUAL, "==", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.GREATEREQUAL, ">=", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.LESSEQUAL, "<=", new CodeSourceLocation(fileName, 1, 7)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
+
+        assertEquals(new Token(TokenType.NOTEQUAL, "!=", new CodeSourceLocation(fileName, 1, 10)).toString(),
+                tokens.get(3).toString(), "Fourth token mismatch");
     }
 
-    TEST_CASE("tokenizer emit operationEqual token","[tokenizer]") {
-        using enum vnd::TokenType;
-        vnd::Tokenizer tokenizer {
-            "+= -= *= /= %=", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 6);
-        REQUIRE(tokens[0] == vnd::Token (PLUSEQUAL, "+=", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (MINUSEQUAL, "-=", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (STAREQUAL, "*=", vnd::CodeSourceLocation (filename, 1, t_colum3)));
-        REQUIRE(tokens[3] == vnd::Token (DIVIDEEQUAL, "/=", vnd::CodeSourceLocation (filename, 1, 10)));
-        REQUIRE(tokens[4] == vnd::Token (PERCENTEQUAL, "%=", vnd::CodeSourceLocation (filename, 1, 13)));
+    @Test
+    void testEmitLogicalOperatorToken() {
+        String code = "&& ||";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(3, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.ANDAND, "&&", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.OROR, "||", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
     }
 
-    TEST_CASE("tokenizer emit boolean operator token","[tokenizer]") {
-        using enum vnd::TokenType;
-        vnd::Tokenizer tokenizer {
-            "== >= <= !=", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 5);
-        REQUIRE(tokens[0] == vnd::Token (EQUALEQUAL, "==", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (GREATEREQUAL, ">=", vnd::CodeSourceLocation (filename, 1, 4)));
-        REQUIRE(tokens[2] == vnd::Token (LESSEQUAL, "<=", vnd::CodeSourceLocation (filename, 1, t_colum3)));
-        REQUIRE(tokens[3] == vnd::Token (NOTEQUAL, "!=", vnd::CodeSourceLocation (filename, 1, 10)));
+    @Test
+    void testEmitUnaryOperatorToken() {
+        String code = "++ --";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(3, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.PLUSPLUS, "++", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.MINUSMINUS, "--", new CodeSourceLocation(fileName, 1, 4)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
     }
 
-    TEST_CASE("tokenizer emit logical operator token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "&& ||", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 3);
-        REQUIRE(tokens[0] == vnd::Token (vnd::TokenType::ANDAND, "&&", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (vnd::TokenType::OROR, "||", vnd::CodeSourceLocation (filename, 1, 4)));
+    @Test
+    void testEmitParenthesisToken() {
+        String code = "( )";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(3, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.OPEN_PARENTESIS, "(", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.CLOSE_PARENTESIS, ")", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
     }
 
-    TEST_CASE("tokenizer emit unary operator token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "++ --", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 3);
-        REQUIRE(tokens[0] == vnd::Token (vnd::TokenType::PLUSPLUS, "++", vnd::CodeSourceLocation (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (vnd::TokenType::MINUSMINUS, "--", vnd::CodeSourceLocation (filename, 1, 4)));
+    @Test
+    void testEmitSquareParenthesisToken() {
+        String code = "[ ]";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(3, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.OPEN_SQ_PARENTESIS, "[", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.CLOSE_SQ_PARENTESIS, "]", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
     }
 
-    TEST_CASE("tokenizer emit parenthesis token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "( )", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 3);
-        REQUIRE(tokens[0] == vnd::Token (vnd::TokenType::OPEN_PARENTESIS, "(", vnd::CodeSourceLocation (filename, 1, 1)))
-        ;
-        REQUIRE(tokens[1] == vnd::Token (vnd::TokenType::CLOSE_PARENTESIS, ")", vnd::CodeSourceLocation (filename, 1, 3)))
-        ;
+    @Test
+    void testEmitCurlyParenthesisToken() {
+        String code = "{ }";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(3, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.OPEN_CUR_PARENTESIS, "{", new CodeSourceLocation(fileName, 1, 1)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.CLOSE_CUR_PARENTESIS, "}", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
     }
 
-    TEST_CASE("tokenizer emit square parenthesis token","[tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "[ ]", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 3);
-        REQUIRE(tokens[0] == vnd::Token (vnd::TokenType::OPEN_SQ_PARENTESIS, "[", vnd::CodeSourceLocation
-        (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (vnd::TokenType::CLOSE_SQ_PARENTESIS, "]", vnd::CodeSourceLocation
-        (filename, 1, 3)));
+
+    @Test
+    void testEmitCharToken() {
+        String code = "'a' '\\\\' ''";
+        String filename = "testFile";
+
+        Lexer tokenizer = new Lexer(filename, code);
+        List<Token> tokens = tokenizer.tokenize();
+
+        assertEquals(4, tokens.size(), "Token count mismatch");
+        FileName fileName = new FileName(filename);
+
+        assertEquals(new Token(TokenType.CHAR, "a", new CodeSourceLocation(fileName, 1, 2)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
+
+        assertEquals(new Token(TokenType.CHAR, "\\\\", new CodeSourceLocation(fileName, 1, 6)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
+
+        assertEquals(new Token(TokenType.CHAR, "", new CodeSourceLocation(fileName, 1, 11)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
     }
 
-    TEST_CASE("Tokenizer emit square curly token","[Tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            "{ }", filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 3);
-        REQUIRE(tokens[0] == vnd::Token (vnd::TokenType::OPEN_CUR_PARENTESIS, "{", vnd::CodeSourceLocation
-        (filename, 1, 1)));
-        REQUIRE(tokens[1] == vnd::Token (vnd::TokenType::CLOSE_CUR_PARENTESIS, "}", vnd::CodeSourceLocation
-        (filename, 1, 3)));
-    }*/
+    @Test
+    void testEmitExceptionOnUnknownChar() {
+        String code = ";";
+        String filename = "testFile";
 
-    /*TEST_CASE("Tokenizer emit char token","[Tokenizer]") {
-        using enum vnd::TokenType;
-        constexpr std::string_view code2 = R "('a' '\\' '')";
-        vnd::Tokenizer tokenizer {
-            code2, filename
-        } ;
-        std::vector < vnd::Token > tokens = tokenizer.tokenize();
-        REQUIRE(tokens.size() == 4);
-        REQUIRE(tokens[0] == vnd::Token (CHAR, "a", vnd::CodeSourceLocation (filename, 1, 2)));
-        REQUIRE(tokens[1] == vnd::Token (CHAR, R "(\\)", vnd::CodeSourceLocation (filename, 1, t_colum)));
-        REQUIRE(tokens[2] == vnd::Token (CHAR, "", vnd::CodeSourceLocation (filename, 1, t_colum8)));
-    }*/
-
-    /*TEST_CASE("Tokenizer emit exception for unknown char","[Tokenizer]") {
-        vnd::Tokenizer tokenizer {
-            ";", filename
-        } ;
-        REQUIRE_THROWS_MATCHES(tokenizer.tokenize(), std::runtime_error,
-                MessageMatches(ContainsSubstring("Unknown Character ';' (line 1, column 1):")));
-    }*/
+        Lexer tokenizer = new Lexer(filename, code);
+        assertThrows(RuntimeException.class, tokenizer::tokenize, "Unknown Character ';' (line 1, column 1):");
+    }
 
     @Test
     void testEmitStringToken() {
@@ -665,14 +845,14 @@ class LexerTest {
         assertEquals(4, tokens.size(), "Token count mismatch");
         FileName fileName = new FileName(filename);
 
-        assertEquals(new Token(TokenType.STRING, "a", new CodeSourceLocation(fileName, 1, 3)),
-                tokens.get(0), "First token mismatch");
+        assertEquals(new Token(TokenType.STRING, "a", new CodeSourceLocation(fileName, 1, 3)).toString(),
+                tokens.get(0).toString(), "First token mismatch");
 
-        assertEquals(new Token(TokenType.STRING, "\\\\", new CodeSourceLocation(fileName, 1, 7)),
-                tokens.get(1), "Second token mismatch");
+        assertEquals(new Token(TokenType.STRING, "\\\\", new CodeSourceLocation(fileName, 1, 7)).toString(),
+                tokens.get(1).toString(), "Second token mismatch");
 
-        assertEquals(new Token(TokenType.STRING, "", new CodeSourceLocation(fileName, 1, 12)),
-                tokens.get(2), "Third token mismatch");
+        assertEquals(new Token(TokenType.STRING, "", new CodeSourceLocation(fileName, 1, 12)).toString(),
+                tokens.get(2).toString(), "Third token mismatch");
     }
 
     @Test
@@ -695,7 +875,7 @@ class LexerTest {
                 new CodeSourceLocation(new FileName(filename), 1, 2)
         );
 
-        assertEquals(expectedToken, tokens.get(0), "First token should be an UNKNOWN token with 'a'.");
+        assertEquals(expectedToken, tokens.getFirst(), "First token should be an UNKNOWN token with 'a'.");
     }
 
     @Test
@@ -743,12 +923,12 @@ class LexerTest {
         final String code = "/*multi\nline\ncomment*/";
         String filename = "exampleFile.java";
 
-        Lexer tokenizer = new Lexer(filename,code);
+        Lexer tokenizer = new Lexer(filename, code);
         List<Token> tokens = tokenizer.tokenize();
 
         FileName fileName = new FileName(filename);
         assertEquals(2, tokens.size());
-        assertEquals(new Token(TokenType.COMMENT, "/*multi\nline\ncomment*/", new CodeSourceLocation(fileName, 2, 1)), tokens.get(0));
+        assertEquals(new Token(TokenType.COMMENT, "/*multi\nline\ncomment*/", new CodeSourceLocation(fileName, 2, 1)).toString(), tokens.get(0).toString());
     }
 
     @Test
@@ -756,7 +936,7 @@ class LexerTest {
         final String input = "/* This * is * a * multi-line comment */";
         String filename = "exampleFile.java";
 
-        Lexer tokenizer = new Lexer(filename,input);
+        Lexer tokenizer = new Lexer(filename, input);
         List<Token> tokens = tokenizer.tokenize();
 
         assertEquals(2, tokens.size());
@@ -768,7 +948,7 @@ class LexerTest {
     @Test
     public void testSingleAndMultiLineComments() {
         String input = "// Single line\n/* Multi-line */";
-        Lexer tokenizer = new Lexer("testFile",input);
+        Lexer tokenizer = new Lexer("testFile", input);
 
         List<Token> tokens = tokenizer.tokenize();
 
@@ -782,7 +962,7 @@ class LexerTest {
     @Test
     public void testMultiLineCommentFollowedBySingleLineComment() {
         String input = "/* Multi-line */\n// Single line";
-        Lexer tokenizer = new Lexer("testFile",input);
+        Lexer tokenizer = new Lexer("testFile", input);
 
         List<Token> tokens = tokenizer.tokenize();
 
@@ -799,7 +979,7 @@ class LexerTest {
         //const std::string input = "/* Comment with ** inside */";
         //vnd::Tokenizer tokenizer(input, "testFile");
         String input = "/* Comment with ** inside */";
-        Lexer tokenizer = new Lexer("testFile",input );
+        Lexer tokenizer = new Lexer("testFile", input);
 
         Token token = tokenizer.tokenize().getFirst();
         assertSame(TokenType.COMMENT, token.getType());

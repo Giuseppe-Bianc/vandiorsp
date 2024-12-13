@@ -123,8 +123,8 @@ public class Lexer {
             } else if (Character.isWhitespace(caracter)) {
                 handleWhitespace();
             } else {
-                log.error("unknown character '{}' at column: {}, line: {}", caracter, column, line);
-                incPosAndColumn();
+                throw new RuntimeException("unknown character '" + caracter + "' at column: " + column + ", line: " + line);
+                //incPosAndColumn();
             }
         }
         LocalDateTime eofctime = LocalDateTime.now();
@@ -320,7 +320,15 @@ public class Lexer {
             }
         } else {
             String errorValue = input.substring(start, position);
-            log.error("malformed hexadecimal number or octal number {} at column: {} line{}", errorValue, column, line);
+            String errorString = new StringBuilder("malformed hexadecimal number or octal number '")
+                    .append(errorValue)
+                    .append("' (column: ")
+                    .append(column)
+                    .append(", line")
+                    .append(line)
+                    .append("):")
+                    .toString();
+            throw  new IllegalArgumentException(errorString);
         }
 
         String value = input.substring(start, position);
@@ -404,7 +412,7 @@ public class Lexer {
             tokenType = TokenType.DOUBLE;
         }
 
-        if (inTextAnd('i')) {
+        if (inTextAnd('f')) {
             incPosAndColumn();
             tokenType = TokenType.DOUBLE;
         }
@@ -413,7 +421,7 @@ public class Lexer {
         return createToken(tokenType, value);
     }
 
-    public void extractExponent() {
+    public void extractExponent(){
         if (positionIsInText() && isPlusOrMinus(input.charAt(position))) {
             incPosAndColumn();
         }
@@ -427,7 +435,7 @@ public class Lexer {
     }
 
     private boolean inTextAndE() {
-        return positionIsInText() && Character.toUpperCase(input.charAt(position)) == 'e';
+        return positionIsInText() && (input.charAt(position) == 'e' || input.charAt(position) == 'E');
     }
 
     public boolean inTextAnd(char chr) {
