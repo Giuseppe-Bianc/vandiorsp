@@ -2,7 +2,6 @@ package org.dersbian.vandiorsp.model;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 
@@ -112,8 +111,7 @@ public class Lexer {
             } else if (isCommaOrColon(caracter)) {
                 var value = caracter;
                 incPosAndColumn();
-                LocalDateTime tokenctime = LocalDateTime.now();
-                tokens.add(new Token(CommaOrColonType(value), String.valueOf(value), new CodeSourceLocation(fileName, line, column - 1, tokenctime), tokenctime));
+                tokens.add(new Token(CommaOrColonType(value), String.valueOf(value), new CodeSourceLocation(fileName, line, column - 1)));
             } else if (isBrackets(caracter)) {
                 tokens.add(handleBrackets());
             } else if (isApostrophe(caracter)) {
@@ -127,8 +125,7 @@ public class Lexer {
                 //incPosAndColumn();
             }
         }
-        LocalDateTime eofctime = LocalDateTime.now();
-        tokens.add(new Token(TokenType.EOFT, new CodeSourceLocation(fileName, line, column, eofctime), eofctime));
+        tokens.add(new Token(TokenType.EOFT, new CodeSourceLocation(fileName, line, column)));
         return tokens;
     }
 
@@ -162,8 +159,7 @@ public class Lexer {
             if (position + 1 == inputSize) {
                 incPosAndColumn();
                 value = input.substring(start, position);
-                LocalDateTime utokenctime = LocalDateTime.now();
-                return new Token(TokenType.UNKNOWN, value, new CodeSourceLocation(fileName, line, column - value.length(), utokenctime), utokenctime);
+                return new Token(TokenType.UNKNOWN, value, new CodeSourceLocation(fileName, line, column - value.length()));
             }
             incPosAndColumn();
         }
@@ -171,8 +167,7 @@ public class Lexer {
         value = input.substring(start, position);
         final int colum = column - value.length();
         incPosAndColumn();
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(TokenType.CHAR, value, new CodeSourceLocation(fileName, line, colum, tokenctime), tokenctime);
+        return new Token(TokenType.CHAR, value, new CodeSourceLocation(fileName, line, colum));
     }
 
     public Token handleBrackets() {
@@ -224,16 +219,14 @@ public class Lexer {
 
         while (!value.isEmpty()) {
             Token token = null;
-
-            LocalDateTime tokenctime = LocalDateTime.now();
             if (value.length() > 1) {
                 String twoCharOp = value.substring(0, 2);
-                token = new Token(multiCharOp(twoCharOp), twoCharOp, new CodeSourceLocation(fileName, line, column - twoCharOp.length(), tokenctime), tokenctime);
+                token = new Token(multiCharOp(twoCharOp), twoCharOp, new CodeSourceLocation(fileName, line, column - twoCharOp.length()));
             }
 
             if (token == null || token.isType(TokenType.UNKNOWN) || value.length() == 1) {
                 String oneCharOp = value.substring(0, 1);
-                token = new Token(TokenType.singleCharOp(oneCharOp.charAt(0)), oneCharOp, new CodeSourceLocation(fileName, line, column - oneCharOp.length(), tokenctime), tokenctime);
+                token = new Token(TokenType.singleCharOp(oneCharOp.charAt(0)), oneCharOp, new CodeSourceLocation(fileName, line, column - oneCharOp.length()));
             }
 
             tokens.add(token);
@@ -298,8 +291,7 @@ public class Lexer {
 
         String value = input.substring(start, position);
 
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(TokenType.COMMENT, value, new CodeSourceLocation(fileName, line, startColumn, tokenctime), tokenctime);
+        return new Token(TokenType.COMMENT, value, new CodeSourceLocation(fileName, line, startColumn));
     }
 
 
@@ -332,8 +324,7 @@ public class Lexer {
         }
 
         String value = input.substring(start, position);
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(TokenType.INTEGER, value, new CodeSourceLocation(fileName, line, column - value.length() - 1, tokenctime), tokenctime);
+        return new Token(TokenType.INTEGER, value, new CodeSourceLocation(fileName, line, column - value.length() - 1));
     }
 
 
@@ -372,8 +363,7 @@ public class Lexer {
         String value = input.substring(start, position);
         TokenType type = keywordType(value);
         int tokenColumnStart = column - value.length();
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(type, value, new CodeSourceLocation(fileName, line, tokenColumnStart, tokenctime), tokenctime);
+        return new Token(type, value, new CodeSourceLocation(fileName, line, tokenColumnStart));
     }
 
     private void incPosAndColumn() {
@@ -444,12 +434,10 @@ public class Lexer {
 
     // Improved utility methods
     private Token createToken(TokenType type, String value) {
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(type, value, new CodeSourceLocation(fileName, line, column - value.length(), tokenctime), tokenctime);
+        return new Token(type, value, new CodeSourceLocation(fileName, line, column - value.length()));
     }
 
     private Token createToken() {
-        LocalDateTime tokenctime = LocalDateTime.now();
-        return new Token(TokenType.UNKNOWN, new CodeSourceLocation(fileName, line, column, tokenctime), tokenctime);
+        return new Token(TokenType.UNKNOWN, new CodeSourceLocation(fileName, line, column));
     }
 }

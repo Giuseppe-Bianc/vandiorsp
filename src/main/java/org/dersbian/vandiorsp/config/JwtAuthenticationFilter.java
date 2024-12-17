@@ -1,5 +1,6 @@
 package org.dersbian.vandiorsp.config;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUserName(jwt);
+        userEmail = getUserEmail(jwt);
 
         if (userEmail != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -80,4 +81,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+
+    private String getUserEmail(String jwt) {
+        try {
+            return jwtService.extractUserName(jwt);
+        } catch (ExpiredJwtException e) {
+            log.warn("{}", e.getMessage());
+            return null;
+        }
+    }
+
+
 }

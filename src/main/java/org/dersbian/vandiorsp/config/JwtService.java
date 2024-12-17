@@ -38,7 +38,7 @@ public class JwtService {
      * @return the extracted claim
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims((token));
+        final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
@@ -60,12 +60,13 @@ public class JwtService {
      * @return the generated JWT token
      */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        var time = System.currentTimeMillis();
         return Jwts
                 .builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .issuedAt(new Date(time))
+                .expiration(new Date(time + 24 * 60 * 60 * 1000))
                 .signWith(getSignInKey())
                 .compact();
 

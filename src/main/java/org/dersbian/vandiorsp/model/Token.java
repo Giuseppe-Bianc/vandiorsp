@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,17 +20,24 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Schema(description = "Represents a token with a specific type, value, and source location in the code.")
 public class Token {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "token_id_gen")
+    /*@GeneratedValue(strategy = GenerationType.TABLE, generator = "token_id_gen")
     @TableGenerator(
             name = "token_id_gen",
             table = "id_generator",
             pkColumnName = "id_name",
             valueColumnName = "id_value",
             pkColumnValue = "token_id", // Explicit segment value
+            allocationSize = 150
+    )*/
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "token_seq_gen")
+    @SequenceGenerator(
+            name = "token_seq_gen",
+            sequenceName = "token_seq",
             allocationSize = 150
     )
     @Schema(description = "Unique identifier of the token", example = "1")
@@ -44,11 +54,14 @@ public class Token {
     @Builder.Default
     private String value = "";
 
-    @Column(nullable = false)
-    @Schema(description = "Timestamp when the token was created", example = "2023-11-05T14:30:00Z", requiredMode = Schema.RequiredMode.REQUIRED)
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    @Schema(description = "Timestamp when the token was created", example = "2023-11-05T14:30:00Z")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Timestamp when the token was last modified", example = "2023-11-06T09:20:00Z")
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    @Schema(description = "Timestamp when the token was last modified", example = "2024-12-07T09:20:00Z")
     private LocalDateTime lastModifiedAt;
 
     @OneToOne(cascade = CascadeType.MERGE, optional = false, fetch = FetchType.EAGER)
@@ -57,28 +70,16 @@ public class Token {
     private CodeSourceLocation sourceLocation;
 
     // Additional constructors
-    public Token(TokenType tokenType, String value, CodeSourceLocation sourceLocation, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
+    public Token(TokenType tokenType, String value, CodeSourceLocation sourceLocation) {
         this.type = tokenType;
         this.value = value;
         this.sourceLocation = sourceLocation;
-        this.createdAt = createdAt;
-        this.lastModifiedAt = lastModifiedAt;
     }
 
-    public Token(TokenType tokenType, CodeSourceLocation sourceLocation, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
-        this(tokenType, "", sourceLocation, createdAt, lastModifiedAt);
-    }
-
-    public Token(TokenType tokenType, String value, CodeSourceLocation sourceLocation, LocalDateTime createdAt) {
-        this(tokenType, value, sourceLocation, createdAt, null);
-    }
-
-    public Token(TokenType tokenType, CodeSourceLocation sourceLocation, LocalDateTime createdAt) {
-        this(tokenType, "", sourceLocation, createdAt, null);
-    }
-
-    public Token(TokenType tokenType, String value, CodeSourceLocation sourceLocation) {
-        this(tokenType, value, sourceLocation, LocalDateTime.now());
+    public Token(TokenType tokenType, CodeSourceLocation sourceLocation) {
+        this.type = tokenType;
+        this.value = "";
+        this.sourceLocation = sourceLocation;
     }
 
     public boolean isType(TokenType type) {

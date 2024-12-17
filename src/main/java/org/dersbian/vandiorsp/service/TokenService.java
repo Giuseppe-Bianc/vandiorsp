@@ -1,5 +1,6 @@
 package org.dersbian.vandiorsp.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dersbian.vandiorsp.model.CodeSourceLocation;
 import org.dersbian.vandiorsp.model.FileName;
@@ -8,7 +9,12 @@ import org.dersbian.vandiorsp.model.Token;
 import org.dersbian.vandiorsp.repository.CodeSourceLocationRepository;
 import org.dersbian.vandiorsp.repository.FileNameRepository;
 import org.dersbian.vandiorsp.repository.TokenRepository;
+import org.dersbian.vandiorsp.user.User;
+import org.dersbian.vandiorsp.util.AuthenticatedUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,20 +25,13 @@ import java.util.*;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class TokenService {
 
     private final TokenRepository tokenRepository;
     private final CodeSourceLocationRepository codeSourceLocationRepository;
     private final FileNameRepository fileNameRepository;
-
-    @Autowired
-    public TokenService(TokenRepository tokenRepository,
-                        CodeSourceLocationRepository codeSourceLocationRepository,
-                        FileNameRepository fileNameRepository) {
-        this.tokenRepository = tokenRepository;
-        this.codeSourceLocationRepository = codeSourceLocationRepository;
-        this.fileNameRepository = fileNameRepository;
-    }
+    private final AuthenticationManager authenticationManager;
 
     /*
      * Creates and saves a Token entity with its associated CodeSourceLocation and FileName.
@@ -53,6 +52,12 @@ public class TokenService {
      */
     @Transactional
     public void saveToken(Token token) {
+        Optional<User> user = AuthenticatedUserUtil.getAuthenticatedUser();
+        user.ifPresentOrElse(
+                u -> log.info("Authenticated user found, assigning to TokenSummary entities: {}", u),
+                () -> log.warn("No authenticated user found, skipping user assignment to TokenSummary entities")
+        );
+
         if (!Objects.isNull(token.getId())) {
             throw new IllegalArgumentException("in the creation fase of the token the id must be empty");
         }
@@ -92,10 +97,15 @@ public class TokenService {
         return saveOrRetrieveSourceLocation(sourceLocation, fileName);
     }
 
-    private void saveNewSourceLocations(List<CodeSourceLocation> sourceLocationsToSave) {
-        if (!sourceLocationsToSave.isEmpty()) {
-            codeSourceLocationRepository.saveAll(sourceLocationsToSave);
+    public void saveNewSourceLocations(List<CodeSourceLocation> sourceLocationsToSave) {
+        if (sourceLocationsToSave == null || sourceLocationsToSave.isEmpty()) {
+            return;
         }
+
+        codeSourceLocationRepository.saveAll(sourceLocationsToSave.stream()
+                .filter(Objects::nonNull) // Ensure no null entries
+                .distinct()             // Avoid saving duplicates
+                .toList());             // Collect into a list
     }
 
     /**
@@ -128,9 +138,11 @@ public class TokenService {
      * }
      */
 
+    @CachePut(value = "tokens", key = "#id")
     public Token findToken(Long id) {
-        return tokenRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("the token whit id: " + id + "not found"));
+        return tokenRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("the token whit id: " + id + " not found"));
     }
+
 
     public List<Token> getTokens() {
         return tokenRepository.findAll();

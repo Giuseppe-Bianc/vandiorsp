@@ -1,7 +1,6 @@
 package org.dersbian.vandiorsp.model;
 
-import java.util.EnumSet;
-import java.util.Set;
+
 
 public enum TokenType {
     INTEGER,
@@ -74,16 +73,18 @@ public enum TokenType {
     UNKNOWN,
     EOFT;
 
+    /*// Keywords set optimized with EnumSet for fast lookup
     private static final Set<TokenType> KEYWORDS = EnumSet.of(K_MAIN, K_VAR, K_IF, K_WHILE, K_ELSE, K_FOR, K_BREAK, K_FUN, K_RETURN);
 
+    // Checks if a TokenType is a keyword
     public static boolean isKeyword(TokenType type) {
         return KEYWORDS.contains(type);
-    }
+    }*/
 
+    // Returns the corresponding bracket type based on the input value
     public static TokenType getBracketsType(String value) {
         if (value.isEmpty()) return UNKNOWN;
-        char ch = value.charAt(0);
-        return switch (ch) {
+        return switch (value.charAt(0)) {
             case '(' -> OPEN_PARENTESIS;
             case ')' -> CLOSE_PARENTESIS;
             case '[' -> OPEN_SQ_PARENTESIS;
@@ -94,6 +95,7 @@ public enum TokenType {
         };
     }
 
+    // Optimized method for single character operators
     public static TokenType singleCharOp(char ch) {
         return switch (ch) {
             case '-' -> MINUS;

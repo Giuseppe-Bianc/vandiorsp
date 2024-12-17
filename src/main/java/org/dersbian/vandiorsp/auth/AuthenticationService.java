@@ -1,9 +1,12 @@
 package org.dersbian.vandiorsp.auth;
 
-import org.dersbian.vandiorsp.config.JwtService;
-import org.dersbian.vandiorsp.user.*;
 import lombok.RequiredArgsConstructor;
+import org.dersbian.vandiorsp.config.JwtService;
+import org.dersbian.vandiorsp.user.Role;
+import org.dersbian.vandiorsp.user.User;
+import org.dersbian.vandiorsp.user.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,8 +23,8 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
 
         var userAlreadyExists = repository.findByEmail(request.getEmail());
-        if(userAlreadyExists.isPresent()){
-            return AuthenticationResponse.error("User email already exists");
+        if (userAlreadyExists.isPresent()) {
+            throw new IllegalArgumentException("User email already exists: " + request.getEmail());
         }
 
         var user = User.builder()
@@ -41,19 +44,25 @@ public class AuthenticationService {
                 .lastname(user.getLastname())
                 .email(user.getEmail())
                 .build();
-
     }
 
     public AuthenticationResponse authenticate(AuthenticateRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            // Perform authentication
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Invalid email or password.");
+        }
 
-        var user = repository.findByEmail(request.getEmail())
-                .orElseThrow();
+        // Find the user
+        User user = repository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
+
 
         var jwtToken = jwtService.generateToken(user);
 

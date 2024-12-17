@@ -16,13 +16,19 @@ import lombok.experimental.SuperBuilder;
 public class FileName {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "file_name_id_gen")
+    /*@GeneratedValue(strategy = GenerationType.TABLE, generator = "file_name_id_gen")
     @TableGenerator(
             name = "file_name_id_gen",
             table = "id_generator",
             pkColumnName = "id_name",
             valueColumnName = "id_value",
             pkColumnValue = "file_name_id", // Explicit segment value
+            allocationSize = 5
+    )*/
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "file_name_seq_gen")
+    @SequenceGenerator(
+            name = "file_name_seq_gen",
+            sequenceName = "file_name_seq",
             allocationSize = 5
     )
     @Schema(description = "Unique identifier for the file name", example = "1")
