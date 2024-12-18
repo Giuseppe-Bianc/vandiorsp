@@ -22,10 +22,9 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest request) {
 
-        var userAlreadyExists = repository.findByEmail(request.getEmail());
-        if (userAlreadyExists.isPresent()) {
+        repository.findByEmail(request.getEmail()).ifPresent(_ -> {
             throw new IllegalArgumentException("User email already exists: " + request.getEmail());
-        }
+        });
 
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -39,6 +38,7 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
+                .id(user.getId())
                 .token(jwtToken)
                 .firstname(user.getFirstname())
                 .lastname(user.getLastname())
@@ -67,6 +67,7 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
+                .id(user.getId())
                 .token(jwtToken)
                 .firstname(user.getFirstname())
                 .lastname(user.getLastname())
