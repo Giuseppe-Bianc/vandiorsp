@@ -1,20 +1,15 @@
 package org.dersbian.vandiorsp;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
-@Data
-public class CustomErrorResponse {
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime timestamp;
-    private String path;
-    private String message;
-
+public record CustomErrorResponse(String message,
+                                  String path,
+                                  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+                                  LocalDateTime timestamp) {
     public CustomErrorResponse(String message, String path) {
-        this.message = message;
-        this.timestamp = LocalDateTime.now();
-        this.path = path;
+        this(message, path, LocalDateTime.now());
     }
 }
