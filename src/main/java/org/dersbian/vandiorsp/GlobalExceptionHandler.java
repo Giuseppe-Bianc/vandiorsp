@@ -16,24 +16,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.io.IOException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /*@ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<CustomErrorResponse> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
-        CustomErrorResponse errorResponse = new CustomErrorResponse(
-                "Authentication Failed: " + ex.getMessage(),
-                request.getDescription(false)  // Get the request path
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-    }*/
+    private String extractPath(WebRequest request) {
+        String description = request.getDescription(false);
+        return description.substring(4);
+    }
+
     // Handle IllegalArgumentException specifically
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) // Set the HTTP status to 400 Bad Request
     public ResponseEntity<CustomErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 "Bad Request: " + ex.getMessage(),
-                request.getDescription(false).substring(4)  // Get the request path
+                extractPath(request)  // Get the request path
         );
         return ResponseEntity.badRequest().body(errorResponse);
     }
@@ -43,7 +42,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 ex.getMessage(),
-                request.getDescription(false).substring(4)  // Get the request path
+                extractPath(request)  // Get the request path
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
@@ -52,7 +51,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 "Bad credentials: " + ex.getMessage(),
-                request.getDescription(false).substring(4)  // Get the request path
+                extractPath(request)  // Get the request path
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -62,7 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CustomErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException ex, WebRequest request) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 "This API endpoint is not found: " + ex.getMessage(),
-                request.getDescription(false).substring(4)  // Get the request path
+                extractPath(request)  // Get the request path
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
@@ -70,7 +69,7 @@ public class GlobalExceptionHandler {
     // Handle LockedException
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<CustomErrorResponse> handleLockedException(LockedException ex, WebRequest request) {
-        String path = request.getDescription(false).substring(4);
+        String path = extractPath(request);
         CustomErrorResponse errorResponse = new CustomErrorResponse("Account is locked: " + ex.getMessage(), path);
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -78,32 +77,33 @@ public class GlobalExceptionHandler {
     // Handle DisabledException
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<CustomErrorResponse> handleDisabledException(DisabledException ex, WebRequest request) {
-        String path = request.getDescription(false).substring(4);
+        String path = extractPath(request);
         CustomErrorResponse errorResponse = new CustomErrorResponse("Account is disabled: " + ex.getMessage(), path);
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<CustomValidationExceptionsResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex, WebRequest request) {
-        CustomValidationExceptionsResponse errorResponse = new CustomValidationExceptionsResponse(
-                request.getDescription(false).substring(4)  // Get the request path
-        );
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errorResponse.put(error.getField(), error.getDefaultMessage()));
+    public ResponseEntity<CustomValidationExceptionsResponse> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        CustomValidationExceptionsResponse errorResponse = new CustomValidationExceptionsResponse(extractPath(request));
+        ex.getBindingResult().getFieldErrors().forEach(error -> errorResponse.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<CustomErrorResponse> handleIOException(IOException ex, WebRequest request) {
+        var errorResponse = new CustomErrorResponse("IO Error: " + ex.getMessage(), extractPath(request));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<CustomErrorResponse> handleOtherException(Exception ex, WebRequest request) {
-        //return new Result(false, StatusCode.INTERNAL_SERVER_ERROR, "A server internal error occurs.", ex.getMessage());
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 "A server internal error occurs: " + ex.getMessage(),
-                request.getDescription(false).substring(4)  // Get the request path
+                extractPath(request)  // Get the request path
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().body(errorResponse);
     }
 }
