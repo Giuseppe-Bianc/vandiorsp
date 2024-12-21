@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -19,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.dersbian.vandiorsp.Costansts.AUTH_WHITELIST;
+import static org.dersbian.vandiorsp.Costansts.*;
 
 @Component
 @RequiredArgsConstructor
@@ -47,38 +48,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         // Skip authentication for whitelisted paths
         String uriPath = request.getRequestURI();
-        if (Arrays.asList(AUTH_WHITELIST).contains(request.getRequestURI())) {
+        if (Arrays.asList(AUTH_WHITELIST).contains(uriPath)) {
             log.info("Skipping authentication for whitelisted path: {}", uriPath);
             filterChain.doFilter(request, response);
             return;
         }
-        final String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
         final String jwt;
         final String userEmail;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        jwt = authHeader.substring(BEARER_PREFIX_LEN);
         userEmail = getUserEmail(jwt);
 
-        if (userEmail != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        if (userEmail != null &&  SecurityContextHolder.getContext().getAuthentication() == null) {
+            authenticateUser(request, userEmail, jwt);
         }
+
         filterChain.doFilter(request, response);
     }
 
@@ -91,5 +81,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Authenticates the user based on JWT and sets the authentication in the SecurityContext.
+     */
+    private void authenticateUser(HttpServletRequest request, String userEmail, String jwt) {
+        try {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
+            if (jwtService.isTokenValid(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                log.warn("Invalid JWT for user: {}", userEmail);
+            }
+        } catch (UsernameNotFoundException ex) {
+            log.warn("{}", ex.getMessage());
+        }
+    }
 }

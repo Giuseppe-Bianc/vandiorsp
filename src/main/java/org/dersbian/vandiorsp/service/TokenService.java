@@ -11,9 +11,7 @@ import org.dersbian.vandiorsp.repository.FileNameRepository;
 import org.dersbian.vandiorsp.repository.TokenRepository;
 import org.dersbian.vandiorsp.user.User;
 import org.dersbian.vandiorsp.util.AuthenticatedUserUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.dersbian.vandiorsp.util.Stopwatch;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,7 +30,8 @@ public class TokenService {
     private final TokenRepository tokenRepository;
     private final CodeSourceLocationRepository codeSourceLocationRepository;
     private final FileNameRepository fileNameRepository;
-    private final AuthenticationManager authenticationManager;
+    //private final AuthenticationManager authenticationManager;
+    private final Stopwatch stopwatch;
 
     /*
      * Creates and saves a Token entity with its associated CodeSourceLocation and FileName.
@@ -78,14 +78,24 @@ public class TokenService {
         Map<String, FileName> fileNameCache = new HashMap<>();
         List<CodeSourceLocation> sourceLocationsToSave = new ArrayList<>(tokens.size()); // Preallocate size
 
+        stopwatch.start();
         tokens.forEach(token -> Optional.ofNullable(token.getSourceLocation()).ifPresent(sourceLocation -> {
                     CodeSourceLocation savedLocation = processSourceLocation(sourceLocation, fileNameCache);
                     token.setSourceLocation(savedLocation);
-                    if (Objects.isNull(savedLocation.getId())) {
+                    if (savedLocation.getId()  != null) {
                         sourceLocationsToSave.add(savedLocation);
                     }
                 })
         );
+        stopwatch.stop();
+
+
+        /*List<CodeSourceLocation> sourceLocationsToSave = tokens.stream()
+                .map(Token::getSourceLocation)
+                .filter(Objects::nonNull)
+                .map(sourceLocation -> processSourceLocation(sourceLocation, fileNameCache))
+                .filter(savedLocation -> savedLocation.getId() == null)
+                .collect(Collectors.toList());*/
 
         saveNewSourceLocations(sourceLocationsToSave);
         tokenRepository.saveAll(tokens);
@@ -138,7 +148,6 @@ public class TokenService {
      * }
      */
 
-    @CachePut(value = "tokens", key = "#id")
     public Token findToken(Long id) {
         return tokenRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("the token whit id: " + id + " not found"));
     }

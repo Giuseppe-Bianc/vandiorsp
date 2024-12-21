@@ -17,5 +17,7 @@ public class Costansts {
     };
     public static final String ALLOWED_ORIGIN_LOCAL = "http://localhost:4200";
     public static final String ALLOWED_ORIGIN_NULL = "null";
-
+    public static final String BEARER_PREFIX = "Bearer ";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final int BEARER_PREFIX_LEN = BEARER_PREFIX.length();
 }
