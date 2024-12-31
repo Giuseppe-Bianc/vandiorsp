@@ -12,7 +12,6 @@ import org.dersbian.vandiorsp.repository.TokenRepository;
 import org.dersbian.vandiorsp.user.User;
 import org.dersbian.vandiorsp.util.AuthenticatedUserUtil;
 import org.dersbian.vandiorsp.util.Stopwatch;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,20 +30,6 @@ public class TokenService {
     private final FileNameRepository fileNameRepository;
     //private final AuthenticationManager authenticationManager;
     private final Stopwatch stopwatch;
-
-    /*
-     * Creates and saves a Token entity with its associated CodeSourceLocation and FileName.
-    @Transactional
-    public Token createToken(TokenType type, String value, String fileNameString, int line, int column) {
-        var fileName = getOrCreateFileName(fileNameString);
-        var sourceLocation = saveCodeSourceLocation(fileName, line, column);
-
-        return tokenRepository.save(Token.builder()
-                .type(type)
-                .value(value)
-                .sourceLocation(sourceLocation)
-                .build());
-    }*/
 
     /**
      * Saves an individual Token, ensuring all associated entities are handled properly.
@@ -82,7 +66,7 @@ public class TokenService {
         tokens.forEach(token -> Optional.ofNullable(token.getSourceLocation()).ifPresent(sourceLocation -> {
                     CodeSourceLocation savedLocation = processSourceLocation(sourceLocation, fileNameCache);
                     token.setSourceLocation(savedLocation);
-                    if (savedLocation.getId()  != null) {
+                    if (savedLocation.getId() != null) {
                         sourceLocationsToSave.add(savedLocation);
                     }
                 })
@@ -132,7 +116,7 @@ public class TokenService {
     private CodeSourceLocation saveOrRetrieveSourceLocation(CodeSourceLocation sourceLocation, FileName fileName) {
         sourceLocation.setFileName(fileName);
         return Optional.ofNullable(sourceLocation.getId())
-                .map(id -> sourceLocation)
+                .map(_ -> sourceLocation)
                 .orElseGet(() -> codeSourceLocationRepository.save(sourceLocation));
     }
 
@@ -170,5 +154,14 @@ public class TokenService {
         List<Token> tokens = lexer.tokenize();
         saveTokens(tokens);
         return tokens;
+    }
+
+    @Transactional
+    public List<Token> findTokens(Long id) {
+        List<Token> allTokens = tokenRepository.findAll();
+        FileName fileName = fileNameRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("the file name whit id: " + id + " not found")
+        );
+        return allTokens.stream().filter(token -> token.getSourceLocation().getFileName().getId().equals(fileName.getId())).toList();
     }
 }

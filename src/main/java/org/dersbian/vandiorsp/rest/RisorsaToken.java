@@ -90,10 +90,19 @@ public class RisorsaToken {
         return tokenService.getTokens();
     }
 
-    /*@GetMapping(path = "/csrf-token", produces = "application/json")
-    public CsrfToken getCrsfAutToken(HttpServletRequest request) {
-        return (CsrfToken) request.getAttribute("_csrf");
-    }*/
+    @Operation(
+            summary = "Retrieve a token by the fileName ID",
+            description = "Fetches a token from the database by its unique ID. Returns 404 if not found."
+    )
+    @Parameter(name = "id", description = "The unique ID of the token to be retrieved", required = true)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Tokens found and returned successfully"),
+    })
+    @GetMapping(path = "/get/by-filename", produces = "application/json")
+    public List<Token> getTokensForFilename(@RequestParam("id") Long id) {
+        return tokenService.findTokens(id);
+    }
+
 
     @Operation(
             summary = "Parse the input file and save a list token parsed from the input file",
