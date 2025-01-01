@@ -119,19 +119,6 @@ public class TokenService {
                 .map(_ -> sourceLocation)
                 .orElseGet(() -> codeSourceLocationRepository.save(sourceLocation));
     }
-
-    /**
-     * Helper method to create and save a new CodeSourceLocation.
-     * private CodeSourceLocation saveCodeSourceLocation(FileName fileName, int line, int column) {
-     * var sourceLocation = CodeSourceLocation.builder()
-     * .fileName(fileName)
-     * .line(line)
-     * .column(column)
-     * .build();
-     * return codeSourceLocationRepository.save(sourceLocation);
-     * }
-     */
-
     public Token findToken(Long id) {
         return tokenRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("the token whit id: " + id + " not found"));
     }
@@ -141,14 +128,9 @@ public class TokenService {
         return tokenRepository.findAll();
     }
 
-    private String readFileAsString(MultipartFile file) throws IOException {
-        // Convert the file's bytes to a string using the specified charset (UTF-8 by default)
-        return new String(file.getBytes(), StandardCharsets.UTF_8);
-    }
-
     @Transactional
     public List<Token> parseFile(MultipartFile file) throws IOException {
-        String fileContent = readFileAsString(file);
+        String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
         String fileName = file.getOriginalFilename();
         Lexer lexer = new Lexer(fileName, fileContent);
         List<Token> tokens = lexer.tokenize();
