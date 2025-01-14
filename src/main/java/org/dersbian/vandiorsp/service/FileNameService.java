@@ -16,4 +16,10 @@ public class FileNameService {
     public List<FileName> getFileNames() {
         return fileNameRepository.findAll();
     }
+
+    public FileName findFileName(Long id) {
+        return fileNameRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("FileName with ID: " + id + " not found"));
+
+    }
 }

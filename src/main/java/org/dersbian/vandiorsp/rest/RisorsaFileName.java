@@ -6,6 +6,7 @@ import org.dersbian.vandiorsp.model.FileName;
 import org.dersbian.vandiorsp.model.Token;
 import org.dersbian.vandiorsp.service.FileNameService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +20,12 @@ public class RisorsaFileName {
     private FileNameService fileNameService;
 
     @GetMapping(path = "/get", produces = "application/json")
-    public List<FileName> getTokens() {
+    public List<FileName> getFilenames() {
         return fileNameService.getFileNames();
+    }
+
+    @GetMapping(path = "/get/{id}", produces = "application/json")
+    public FileName getFilenameById(@PathVariable("id") Long id) {
+        return fileNameService.findFileName(id);
     }
 }

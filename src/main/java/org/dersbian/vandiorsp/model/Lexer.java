@@ -320,7 +320,7 @@ public class Lexer {
                     .append(line)
                     .append("):")
                     .toString();
-            throw  new IllegalArgumentException(errorString);
+            throw new IllegalArgumentException(errorString);
         }
 
         String value = input.substring(start, position);
@@ -347,12 +347,28 @@ public class Lexer {
     }*/
 
     private void handleWhitespace() {
-        if (input.charAt(position) == '\n') {
+        // Check if we're at the start of a line with '\n' or '\r\n'
+        char charnsl =  input.charAt(position);
+        if (charnsl == '\n') {
             ++line;
             column = 0;
+        } else if (charnsl == '\r') {
+            // Handle '\r' (carriage return), which might be followed by '\n'
+            int nextPosition = position + 1;
+            if (nextPosition < input.length() && input.charAt(nextPosition) == '\n') {
+                ++line;
+                column = 0;
+                position++;  // Skip the '\n' that follows '\r'
+            } else {
+                ++line;
+                column = 0;
+            }
         }
+
+        // Increment position and column to move to the next character
         incPosAndColumn();
     }
+
 
     private Token handleAlfa() {
         int start = position;
@@ -411,7 +427,7 @@ public class Lexer {
         return createToken(tokenType, value);
     }
 
-    public void extractExponent(){
+    public void extractExponent() {
         if (positionIsInText() && isPlusOrMinus(input.charAt(position))) {
             incPosAndColumn();
         }
